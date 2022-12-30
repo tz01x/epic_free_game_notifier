@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "/workspaces/epic_free_game_notifier/epicbot_interface/epic_bot/fetch_promotionalOffers_games.py", line 63, in fatch_promo_game
+    image_url = find(
+  File "/workspaces/epic_free_game_notifier/epicbot_interface/epic_bot/fetch_promotionalOffers_games.py", line 13, in find
+    items = [item for item in iterator if func(item)]
+  File "/workspaces/epic_free_game_notifier/epicbot_interface/epic_bot/fetch_promotionalOffers_games.py", line 13, in <listcomp>
+    items = [item for item in iterator if func(item)]
+  File "/workspaces/epic_free_game_notifier/epicbot_interface/epic_bot/fetch_promotionalOffers_games.py", line 64, in <lambda>
+    lambda x: re.match(r"*Wide", x['type']) is not None,
+  File "/opt/conda/envs/pyenv/lib/python3.8/re.py", line 191, in match
+    return _compile(pattern, flags).match(string)
+  File "/opt/conda/envs/pyenv/lib/python3.8/re.py", line 304, in _compile
+    p = sre_compile.compile(pattern, flags)
+  File "/opt/conda/envs/pyenv/lib/python3.8/sre_compile.py", line 764, in compile
+    p = sre_parse.parse(p, flags)
+  File "/opt/conda/envs/pyenv/lib/python3.8/sre_parse.py", line 948, in parse
+    p = _parse_sub(source, state, flags & SRE_FLAG_VERBOSE, 0)
+  File "/opt/conda/envs/pyenv/lib/python3.8/sre_parse.py", line 443, in _parse_sub
+    itemsappend(_parse(source, state, verbose, nested + 1,
+  File "/opt/conda/envs/pyenv/lib/python3.8/sre_parse.py", line 668, in _parse
+    raise source.error("nothing to repeat",
+re.error: nothing to repeat at position 0

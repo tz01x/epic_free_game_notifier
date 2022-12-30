@@ -1,67 +1,100 @@
-import requests
 import json
+import re
+import traceback
+import uuid
+import requests
 from epicbot_interface.epic_bot.utils import get_date_obj
 
-previously_seen_game = {}
 
-available_games = []
+def find(func, iterator, default=None):
+    '''
+    return the first match item from iterator or return default
+    '''
+    items = [item for item in iterator if func(item)]
 
-
-with open("previously_seen_product.json", "r", encoding="utf-8") as f:
-    previously_seen_game = json.load(f)
-
-
-reqUrl = "https://store-site-backend-static-ipv4.ak.epicgames.com/freeGamesPromotions"
-
-headersList = {}
-
-payload = ""
-
-response = requests.request(
-    "GET", reqUrl, data=payload, headers=headersList, timeout=30
-)
-
-data = response.json()
+    return items[0] if len(items) > 0 else default
 
 
-if not data["extensions"]:
+def fatch_promo_game():
+
+    previously_seen_game = {}
+
+    with open("epicbot_interface/epic_bot/previously_seen_product.json", "r", encoding="utf-8") as f:
+        previously_seen_game = json.load(f)
+
+    data = get_data_from_api()
+
+    if data["extensions"]:
+        return
+
     try:
         elements = data["data"]["Catalog"]["searchStore"]["elements"]
         for ele in elements:
-            if ele["productSlug"] == "[]":
+            productSlug = uuid.uuid4().hex
+
+            if ele["productSlug"] == None:
+    
+                productSlug = find(
+                    lambda x:x['pageType'] == 'productHome',
+                    ele['catalogNs']['mappings'],
+                    default={},
+                ).get('pageSlug')
+
+            else:
+                productSlug = ele["productSlug"]
+
+            if productSlug == "[]":
                 continue
 
-            promotionalOffers = ele["promotions"]["promotionalOffers"][-1][
-                "promotionalOffers"
-            ][-1]
+            # we will skip the upcoming promo offers
+            if len(ele['promotions']['upcomingPromotionalOffers']) > 0:
+                continue
 
-            item = previously_seen_game.get(ele["productSlug"])
+            promotionalOffers = ele["promotions"]["promotionalOffers"][-1]["promotionalOffers"][-1]
 
-            if item and get_date_obj(item["promotionalOffers_end_date"]) > get_date_obj(
-                promotionalOffers["startDate"]
-            ):
+            item = previously_seen_game.get(productSlug)
+
+            if item and \
+                    get_date_obj(item["promotionalOffers_end_date"]).utcnow() > \
+                    get_date_obj(promotionalOffers["startDate"]).utcnow():
                 print(f'{ele["title"]} seen')
                 continue
 
-            previously_seen_game[ele["productSlug"]] = {
-                "productSlug": ele["productSlug"],
+            image_url = find(
+                lambda x: re.match(r"[A-Za-z]{0,}Wide$", x['type']),
+                ele['keyImages'],
+                default={}
+            ).get('url')
+
+            previously_seen_game[productSlug] = {
+                "productSlug": productSlug,
                 "title": ele["title"],
                 "description": ele["description"],
                 "id": ele["id"],
                 "namespace": ele["namespace"],
                 "promotionalOffers_start_date": promotionalOffers["startDate"],
                 "promotionalOffers_end_date": promotionalOffers["endDate"],
-                "status": "active",
+                "image_url":image_url,
             }
-    except Exception as e:
-        import traceback
+    except Exception as _:
 
-        with open("error_log.txt", "w", encoding="utf-8") as f:
+        with open("./error_log.txt", "w", encoding="utf-8") as f:
             f.write(traceback.format_exc())
 
-for g in available_games:
-    previously_seen_game[g["productSlug"]] = {**g}
+    with open("epicbot_interface/epic_bot/previously_seen_product.json", "w", encoding="utf-8") as f:
+        json.dump(previously_seen_game, f)
 
 
-with open("previously_seen_product.json", "w") as f:
-    json.dump(previously_seen_game, f)
+def get_data_from_api():
+    req_url = "https://store-site-backend-static-ipv4.ak.epicgames.com/freeGamesPromotions"
+
+    headers_list = {}
+
+    payload = ""
+
+    response = requests.request(
+        "GET", req_url, data=payload, headers=headers_list, timeout=30
+    )
+
+    data = response.json()
+    return data

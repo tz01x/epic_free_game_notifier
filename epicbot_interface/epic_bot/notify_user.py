@@ -4,79 +4,118 @@ import smtplib
 import ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import os
+import os,pytz
+from typing import List
 from epicbot_interface.models import Subscribers
 from epicbot_interface.epic_bot.utils import get_date_obj
 
 
-def send_email_to_all_user(title, description):
+def send_email_to_all_user(items:List[dict]):
     """
     send email to Subscribers
     """
 
     receiver_emails = Subscribers.objects.filter(
        is_active=True).values_list('email', flat=True)
-
-    for remail in receiver_emails:
-        send_mail(title, description, remail)
-
-
-def get_active_promo_game():
-
-    with open("epicbot_interface/epic_bot/previously_seen_product.json", "r", encoding="utf-8") as f:
-        previously_seen_game: dict = json.load(f)
-
-    for k, value in previously_seen_game.items():
-        # if current time is grater then promo end time
-        if (
-            datetime.utcnow()
-            > get_date_obj(value["promotionalOffers_end_date"]).utcnow()
-        ):
-            continue
-
-        # notify user
-        send_email_to_all_user(value["title"], value["description"])
-
-
-
-
-
-def send_mail(title, description, receiver_email):
-    sender_email = os.getenv('EMAIL',default='abcd')
-    password = os.getenv('PASS',default='abcd')
-
-    message = MIMEMultipart("alternative")
-    message["Subject"] = f"Free Game - {title} on Epic Store (Limited Time Offer)"
-
-    # Create the plain-text and HTML version of your message
-    text = f"""\
+    full_text = f"""\
     Dear Subscribers,
-    We are excited to announce that Epic Games is offering free copy of {title} on the Epic Store.
-    {description}
+    We are excited to announce that Epic Games is offering free copy of {', '.join((item['title'] for item in items))} on the Epic Store.
     To claim your free game, simply visit the Epic Store and log in with your Epic Games account. The game will be added to your library automatically. This offer is only available for a limited time, so don't miss out on this opportunity to try out this exciting new game.
     Thank you for your continued support. We hope you enjoy the game!
     Sincerely,
     epicBot
     """
-    html = f"""\
+    html_p1 =f"""\
     <html>
     <body>
         <p>Dear Subscribers,</p>
-        <p>We are excited to announce that Epic Games is offering free copy of <strong>{title}</strong> on the Epic Store.</p>
-        <p><i>{description}</i></p>
-        <p>To claim your free game, simply visit the Epic Store and log in with your Epic Games account.
-        The game will be added to your library automatically. This offer is only available for a limited time, 
+        <p>We are excited to announce that Epic Games is offering free copy of <strong>{', '.join((item['title'] for item in items))}</strong> on the Epic Store.</p>
+    """     
+    html_p2 = ''
+    for item in items:
+        html_p2 += f"""
+        <div>
+            <div >
+                
+                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                    <td width="33%" align="center" valign="top" style="font-family:Arial, Helvetica, sans-serif; font-size:2px; color:#ffffff;">.</td>
+                    <td width="35%" align="center" valign="top">
+                    <img src="{item['image_url']}" style="max-width:400px" atr="game cover">
+
+                    </td>
+                    <td width="33%" align="center" valign="top" style="font-family:Arial, Helvetica, sans-serif; font-size:2px; color:#ffffff;">.</td>
+                </tr>
+                </table>
+            </div>
+            <div style="border-left: 5px solid #cbcbcb;padding-left: 10px;">
+                <p style="text-align: center;"><strong>{item['title']}</strong></p>
+                <p><i>{item['description']}</i></p>
+                <div> 
+                    <strong>
+                        Expired Date: {get_date_obj(item['promotionalOffers_end_date']).astimezone(tz=pytz.UTC).strftime("%H:%M:%S at %Y-%m-%d")}
+                    </strong>
+                </div>
+                <div>
+                <p>
+                    To claim this game, click on this <a href="https://store.epicgames.com/en-US/p/{item['productSlug']}">link</a>
+                </p>
+                </div>
+            </div>
+        </div>
+        <hr/>
+        """
+    html_p3="""
+    <p>To claim your free game(s),simply visit the Epic Store and log in with your Epic Games account.
+        This offer is only available for a limited time, 
         so don't miss out on this opportunity to try out this exciting new game.</p>
         <p>Thank you for your continued support. We hope you enjoy the game!</p>
         <p>Sincerely,<br>
         <strong>epicBot</strong>
-        </p>
+    </p>
+    """
+    for remail in receiver_emails:
+        send_mail(full_text,html_p1+html_p2+html_p3, remail)
+
+
+def notify_all_subs():
+
+    with open("epicbot_interface/epic_bot/previously_seen_product.json", "r", encoding="utf-8") as f:
+        previously_seen_game: dict = json.load(f)
+
+    promo_games = [
+        value for _, value in previously_seen_game.items()
+        if not (
+            datetime.now().astimezone(tz=pytz.UTC)
+            > get_date_obj(value["promotionalOffers_end_date"]).astimezone(tz=pytz.UTC)
+        )
+    ]
+
+    send_email_to_all_user(promo_games)
+    # print('send mail ',value["title"])
+
+
+
+
+
+def send_mail(full_text,html, receiver_email):
+    sender_email = os.getenv('EMAIL',default='abcd')
+    password = os.getenv('PASS',default='abcd')
+
+    message = MIMEMultipart("alternative")
+    message["Subject"] = f"Free Game - on Epic Store (Limited Time Offer)"
+
+    html = f"""\
+        {html}
+        <div style="text-align: center">
+        <small> <a href="#">unsubscribe</a>  </small>
+        </div>
     </body>
     </html>
     """
 
     # Turn these into plain/html MIMEText objects
-    part1 = MIMEText(text, "plain")
+    part1 = MIMEText(full_text, "plain")
     part2 = MIMEText(html, "html")
 
     # Add HTML/plain-text parts to MIMEMultipart message
