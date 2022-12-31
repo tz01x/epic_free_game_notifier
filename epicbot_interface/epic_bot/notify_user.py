@@ -107,7 +107,7 @@ def send_mail(full_text,html, user):
     html = f"""\
         {html}
         <div style="text-align: center">
-        <small> <a href="https://ebot01y.pythonanywhere.com/unsubscribe/?id={user.id}">unsubscribe</a>  </small>
+        <small> <a href="https://ebot01y.onrender.com/unsubscribe/?id={user.id}">unsubscribe</a>  </small>
         </div>
     </body>
     </html>
