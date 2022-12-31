@@ -17,7 +17,7 @@ def find(func, iterator, default=None):
 
 
 def fetch_promo_game():
-
+    print('job start')
     previously_seen_game = {}
     has_new_data = False
     with open("epicbot_interface/epic_bot/previously_seen_product.json", "r", encoding="utf-8") as f:

@@ -32,6 +32,10 @@ def notify_sub_user(subs_users):
             > get_date_obj(value["promotionalOffers_end_date"]).astimezone(tz=pytz.UTC)
         )
     ]
+
+    if len(items) < 1 :
+        return
+
     full_text = f"""\
     Dear Subscribers,
     We are excited to announce that Epic Games is offering free copy of {', '.join((item['title'] for item in items))} on the Epic Store.

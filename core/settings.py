@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 import os
+import sys
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -29,6 +30,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+IS_RUNSERVER = len(sys.argv) > 1 and sys.argv[1] == 'runserver'
 
 # Application definition
 
@@ -120,16 +122,16 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR/'media'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 if not DEBUG and 'WHITENOISE' in os.environ:    # Tell Django to copy statics to the `staticfiles` directory
     # in your application directory on Render.
-    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+    STATIC_ROOT = BASE_DIR / 'static' / 'static_root' / 'static'
     # Turn on WhiteNoise storage backend that takes care of compressing static files
     # and creating unique names for each version so they can safely be cached forever.
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 else:
-    STATIC_ROOT = os.path.join(BASE_DIR, 'static', 'static_root', 'static')
+    STATIC_ROOT = BASE_DIR / 'static' / 'static_root' / 'static'
 
 STATICFILES_DIRS = [
     BASE_DIR / "static" / "static_dev_dir",

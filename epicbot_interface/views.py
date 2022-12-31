@@ -1,11 +1,11 @@
 from django.shortcuts import render
 from django.http import HttpRequest
-
+import threading
 
 from .forms import EmailForm
 from .models import Subscribers
-from .epic_bot.notify_user import notify_all_subs
-from .epic_bot.fetch_promotionalOffers_games import fetch_promo_game
+from .epic_bot.notify_user import notify_sub_user
+
 
 
 def home(request:HttpRequest):
@@ -13,14 +13,15 @@ def home(request:HttpRequest):
     error = False
     submitted = False
     if request.method == 'POST':
-        notify_all_subs()  
         form = EmailForm(data=request.POST)
         if form.is_valid():
             submitted = True
-            obj,created = Subscribers.objects.get_or_create(email=form.data.get('email'))
+            obj, created = Subscribers.objects.get_or_create(email=form.data.get('email'))
             if created:
                 obj.is_active = True
                 obj.save()
+            th = threading.Thread(target=notify_sub_user,args=([obj],),daemon=True)
+            th.start()
         else:
             error = True
     return render(request,'home.html',context={'has_error':error,'submitted':submitted})

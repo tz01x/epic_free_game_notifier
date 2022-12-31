@@ -1,12 +1,13 @@
 
 {
-    "mortal-shell":{
-        "productSlug":"mortal-shell",
-        "title":"",
-        "id":"",
-        "namespace":"",
-        "description":"",
-        "promotionalOffers_start_date":"",
-        "promotionalOffers_end_date":""
+    "dishonored-definitive-edition": {
+        "productSlug": "dishonored-definitive-edition",
+        "title": "Dishonored - Definitive Edition",
+        "description": "Experience the definitive Dishonored collection. This complete compilation includes Dishonored as well as all of its additional content - Dunwall City Trials, The Knife of Dunwall, The Brigmore Witches and Void Walker\u2019s Arsenal.",
+        "id": "4d25d74b88d1474a8ab21ffb88ca6d37",
+        "namespace": "d5241c76f178492ea1540fce45616757",
+        "promotionalOffers_start_date": "2022-12-29T16:00:00.000Z",
+        "promotionalOffers_end_date": "2023-01-05T16:00:00.000Z",
+        "image_url": "https://cdn1.epicgames.com/offer/d5241c76f178492ea1540fce45616757/15days-day15-Unwrapped-desktop-carousel-image1_1920x1080-1992edb42bb8554ddeb14d430ba3f858"
     }
 }
