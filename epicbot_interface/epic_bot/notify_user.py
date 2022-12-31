@@ -9,14 +9,29 @@ from typing import List
 from epicbot_interface.models import Subscribers
 from epicbot_interface.epic_bot.utils import get_date_obj
 
+def notify_all_subs():
 
-def send_email_to_all_user(items:List[dict]):
+    sub_users = Subscribers.objects.filter(
+       is_active=True)
+
+    send_email_to_all_user(sub_users)
+    print("send email to ",sub_users.count())
+
+
+def send_email_to_all_user(subs_users):
     """
     send email to Subscribers
     """
+    with open("epicbot_interface/epic_bot/previously_seen_product.json", "r", encoding="utf-8") as f:
+        previously_seen_game: dict = json.load(f)
 
-    receiver_emails = Subscribers.objects.filter(
-       is_active=True).values_list('email', flat=True)
+    items = [
+        value for _, value in previously_seen_game.items()
+        if not (
+            datetime.now().astimezone(tz=pytz.UTC)
+            > get_date_obj(value["promotionalOffers_end_date"]).astimezone(tz=pytz.UTC)
+        )
+    ]
     full_text = f"""\
     Dear Subscribers,
     We are excited to announce that Epic Games is offering free copy of {', '.join((item['title'] for item in items))} on the Epic Store.
@@ -74,31 +89,11 @@ def send_email_to_all_user(items:List[dict]):
         <strong>epicBot</strong>
     </p>
     """
-    for remail in receiver_emails:
-        send_mail(full_text,html_p1+html_p2+html_p3, remail)
+    for user in subs_users:
+        send_mail(full_text,html_p1+html_p2+html_p3, user)
 
 
-def notify_all_subs():
-
-    with open("epicbot_interface/epic_bot/previously_seen_product.json", "r", encoding="utf-8") as f:
-        previously_seen_game: dict = json.load(f)
-
-    promo_games = [
-        value for _, value in previously_seen_game.items()
-        if not (
-            datetime.now().astimezone(tz=pytz.UTC)
-            > get_date_obj(value["promotionalOffers_end_date"]).astimezone(tz=pytz.UTC)
-        )
-    ]
-
-    send_email_to_all_user(promo_games)
-    # print('send mail ',value["title"])
-
-
-
-
-
-def send_mail(full_text,html, receiver_email):
+def send_mail(full_text,html, user):
     sender_email = os.getenv('EMAIL',default='abcd')
     password = os.getenv('PASS',default='abcd')
 
@@ -108,7 +103,7 @@ def send_mail(full_text,html, receiver_email):
     html = f"""\
         {html}
         <div style="text-align: center">
-        <small> <a href="#">unsubscribe</a>  </small>
+        <small> <a href="https://ebot01y.pythonanywhere.com/unsubscribe/?id={user.id}">unsubscribe</a>  </small>
         </div>
     </body>
     </html>
@@ -127,4 +122,4 @@ def send_mail(full_text,html, receiver_email):
     context = ssl.create_default_context()
     with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
         server.login(sender_email, password)
-        server.sendmail(sender_email, receiver_email, message.as_string())
+        server.sendmail(sender_email, user.email, message.as_string())
