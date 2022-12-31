@@ -1,6 +1,6 @@
 from django.shortcuts import render
-from django.http import HttpRequest
-import threading
+from django.http import HttpRequest,HttpResponseBadRequest,HttpResponseServerError
+import threading,requests,os
 
 from .forms import EmailForm
 from .models import Subscribers
@@ -13,6 +13,20 @@ def home(request:HttpRequest):
     error = False
     submitted = False
     if request.method == 'POST':
+        retoken = request.POST.get('token')
+        if not retoken:
+            return HttpResponseBadRequest('bad request')
+        res = requests.post(url='https://www.google.com/recaptcha/api/siteverify',data={
+            'secret':os.getenv('RE_SECRET','re captcha secret key'),
+            'response':retoken,
+        })
+        if not res.ok:
+            return HttpResponseServerError('Server error')
+        data = res.json()
+        print(data)
+        if (not data.get('success') ) or  data.get('score',0) < 0.5:
+            return render(request,'home.html',context={'has_error':False,'submitted':False})
+
         form = EmailForm(data=request.POST)
         if form.is_valid():
             submitted = True
