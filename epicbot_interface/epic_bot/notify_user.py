@@ -14,11 +14,11 @@ def notify_all_subs():
     sub_users = Subscribers.objects.filter(
        is_active=True)
 
-    send_email_to_all_user(sub_users)
+    notify_sub_user(sub_users)
     print("send email to ",sub_users.count())
 
 
-def send_email_to_all_user(subs_users):
+def notify_sub_user(subs_users):
     """
     send email to Subscribers
     """

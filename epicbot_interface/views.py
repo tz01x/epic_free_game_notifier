@@ -5,7 +5,7 @@ from django.http import HttpRequest
 from .forms import EmailForm
 from .models import Subscribers
 from .epic_bot.notify_user import notify_all_subs
-from .epic_bot.fetch_promotionalOffers_games import fatch_promo_game
+from .epic_bot.fetch_promotionalOffers_games import fetch_promo_game
 
 
 def home(request:HttpRequest):

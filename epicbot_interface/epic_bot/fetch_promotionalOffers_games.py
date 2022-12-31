@@ -3,8 +3,9 @@ import re
 import traceback
 import uuid
 import requests
+import pytz
 from epicbot_interface.epic_bot.utils import get_date_obj
-
+from .notify_user import notify_all_subs
 
 def find(func, iterator, default=None):
     '''
@@ -15,10 +16,10 @@ def find(func, iterator, default=None):
     return items[0] if len(items) > 0 else default
 
 
-def fatch_promo_game():
+def fetch_promo_game():
 
     previously_seen_game = {}
-
+    has_new_data = False
     with open("epicbot_interface/epic_bot/previously_seen_product.json", "r", encoding="utf-8") as f:
         previously_seen_game = json.load(f)
 
@@ -55,11 +56,11 @@ def fatch_promo_game():
             item = previously_seen_game.get(productSlug)
 
             if item and \
-                    get_date_obj(item["promotionalOffers_end_date"]).utcnow() > \
-                    get_date_obj(promotionalOffers["startDate"]).utcnow():
+                    get_date_obj(item["promotionalOffers_end_date"]).astimezone(tz=pytz.UTC) > \
+                    get_date_obj(promotionalOffers["startDate"]).astimezone(tz=pytz.UTC):
                 print(f'{ele["title"]} seen')
                 continue
-
+            
             image_url = find(
                 lambda x: re.match(r"[A-Za-z]{0,}Wide$", x['type']),
                 ele['keyImages'],
@@ -76,13 +77,18 @@ def fatch_promo_game():
                 "promotionalOffers_end_date": promotionalOffers["endDate"],
                 "image_url":image_url,
             }
+            has_new_data = True
+        
+        with open("epicbot_interface/epic_bot/previously_seen_product.json", "w", encoding="utf-8") as f:
+            json.dump(previously_seen_game, f)
+        if has_new_data:
+            notify_all_subs()
+
     except Exception as _:
 
         with open("./error_log.txt", "w", encoding="utf-8") as f:
             f.write(traceback.format_exc())
 
-    with open("epicbot_interface/epic_bot/previously_seen_product.json", "w", encoding="utf-8") as f:
-        json.dump(previously_seen_game, f)
 
 
 def get_data_from_api():
