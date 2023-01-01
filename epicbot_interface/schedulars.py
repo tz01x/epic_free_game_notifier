@@ -83,7 +83,7 @@ class Schedular:
         cls.scheduler.add_job(
             func=fetch_promo_game,
             trigger='interval',
-            hours=1,
+            minutes=20,
             id='job_fetch_promo_game'
         )
 
