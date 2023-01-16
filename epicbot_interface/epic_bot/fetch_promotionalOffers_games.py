@@ -33,7 +33,7 @@ def fetch_promo_game():
         for ele in elements:
             productSlug = uuid.uuid4().hex
 
-            if ele["productSlug"] == None:
+            if not ele.get("productSlug"):
     
                 productSlug = find(
                     lambda x:x['pageType'] == 'productHome',
@@ -48,7 +48,9 @@ def fetch_promo_game():
                 continue
 
             # we will skip the upcoming promo offers
-            if len(ele['promotions']['upcomingPromotionalOffers']) > 0:
+    
+            if not ele.get('promotions') or \
+                ele.get('promotions').get('upcomingPromotionalOffers'):
                 continue
 
             promotionalOffers = ele["promotions"]["promotionalOffers"][-1]["promotionalOffers"][-1]
@@ -86,8 +88,9 @@ def fetch_promo_game():
 
     except Exception as _:
 
-        with open("./error_log.txt", "w", encoding="utf-8") as f:
+        with open("./error_log.txt", "a+", encoding="utf-8") as f:
             f.write(traceback.format_exc())
+        raise
 
 
 
