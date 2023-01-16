@@ -10,7 +10,7 @@ from apscheduler.events import (
     EVENT_JOB_ADDED
 )
 
-from .epic_bot.fetch_promotionalOffers_games import fetch_promo_game
+from epicbot_interface.epic_bot.fetch_promotionalOffers_games import fetch_promo_game
 from .models import JobLogs,JobStatusEnum
 
 
