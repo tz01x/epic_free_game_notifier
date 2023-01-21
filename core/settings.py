@@ -47,6 +47,9 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "epicbot_interface",
+    "tz01x_interface",
+    "rest_framework",
+    
 ]
 
 MIDDLEWARE = [

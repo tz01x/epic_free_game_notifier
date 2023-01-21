@@ -1,0 +1,6 @@
+[submodule "tz01x_interface/tz01x_interface/webhook_interface"]
+	path = tz01x_interface/tz01x_interface/webhook_interface
+	url = https://github.com/tz01x/webhook_interface
+[submodule "tz01x_interface/webhook_interface"]
+	path = tz01x_interface/webhook_interface
+	url = https://github.com/tz01x/webhook_interface
