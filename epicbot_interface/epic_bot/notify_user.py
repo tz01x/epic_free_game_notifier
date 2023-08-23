@@ -6,7 +6,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import os,pytz
 from typing import List
-from epicbot_interface.models import Subscribers
+from epicbot_interface.models import Subscribers,PromoData
 from epicbot_interface.epic_bot.utils import get_date_obj
 
 def notify_all_subs():
@@ -22,8 +22,12 @@ def notify_sub_user(subs_users):
     """
     send email to Subscribers
     """
-    with open("epicbot_interface/epic_bot/previously_seen_product.json", "r", encoding="utf-8") as f:
-        previously_seen_game: dict = json.load(f)
+    obj = PromoData.objects.all().first()
+   
+    if obj:
+        previously_seen_game = json.loads(obj.data or "{}")
+    else:
+        previously_seen_game = {}
 
     items = [
         value for _, value in previously_seen_game.items()

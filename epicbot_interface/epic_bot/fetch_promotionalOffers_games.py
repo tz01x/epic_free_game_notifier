@@ -6,6 +6,8 @@ import requests
 import pytz
 from epicbot_interface.epic_bot.utils import get_date_obj
 from .notify_user import notify_all_subs
+from epicbot_interface.models import PromoData
+
 
 def find(func, iterator, default=None):
     '''
@@ -20,8 +22,8 @@ def fetch_promo_game():
     print('job start')
     previously_seen_game = {}
     has_new_data = False
-    with open("epicbot_interface/epic_bot/previously_seen_product.json", "r", encoding="utf-8") as f:
-        previously_seen_game = json.load(f)
+    obj = PromoData.objects.all().first()
+    previously_seen_game =  json.loads(obj.data or "{}") if obj else {}
 
     data = get_data_from_api()
 
@@ -81,16 +83,15 @@ def fetch_promo_game():
             }
             has_new_data = True
         
-        with open("epicbot_interface/epic_bot/previously_seen_product.json", "w", encoding="utf-8") as f:
-            json.dump(previously_seen_game, f)
+        if obj is not None:
+            PromoData.objects.filter(id=obj.id).update(data=json.dumps(previously_seen_game))
+        else:
+            PromoData.objects.create(data=json.dumps(previously_seen_game))
         if has_new_data:
             notify_all_subs()
 
-    except Exception as _:
-
-        with open("./error_log.txt", "a+", encoding="utf-8") as f:
-            f.write(traceback.format_exc())
-        raise
+    except Exception as e:
+        raise e
 
 
 
@@ -104,6 +105,6 @@ def get_data_from_api():
     response = requests.request(
         "GET", req_url, data=payload, headers=headers_list, timeout=30
     )
-
+    print('reading data')
     data = response.json()
     return data
