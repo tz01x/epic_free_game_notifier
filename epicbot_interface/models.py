@@ -25,3 +25,8 @@ class JobLogs(models.Model):
     
     def __str__(self) -> str:
         return self.job_id+"  "+ self.status+"  " + str(self.created_at)
+
+class PromoData(models.Model):
+    data = models.TextField(blank=True,null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
